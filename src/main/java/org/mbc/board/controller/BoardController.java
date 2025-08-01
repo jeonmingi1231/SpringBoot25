@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -47,10 +48,10 @@ public class BoardController {
         model.addAttribute("responseDTO",responseDTO); // 결과를 스프링이 관리하는 모델 객체로 전달
     }
 
-
+    @PreAuthorize("hasRole('USER')") //  User.roles("USER")  // User.authorities("ROLE_USER")
     @GetMapping("/register")
     public void registerGET(){
-
+        // http://localhost/board/register로 들어오면 board.register.html로 간다.
     }
 
     @PostMapping("/register")
@@ -88,6 +89,7 @@ public class BoardController {
 //    }
 
 
+    @PreAuthorize("isAuthenticated()") // 로그인한 상태이면!!! (권한에 상관없음)
     @GetMapping({"/read", "/modify"})
     public void read(Long bno, PageRequestDTO pageRequestDTO, Model model){
 
@@ -99,6 +101,7 @@ public class BoardController {
 
     }
 
+    @PreAuthorize("principal.username == #boardDTO.writer")  // p714 로그인한 사용자와 작성자가 같은지
     @PostMapping("/modify")
     public String modify( PageRequestDTO pageRequestDTO,
                           @Valid BoardDTO boardDTO,
@@ -128,7 +131,7 @@ public class BoardController {
         return "redirect:/board/read";
     }
 
-
+    @PreAuthorize("principal.username == #boardDTO.writer") // p719 작성자가 삭제 가능!!!!
     @PostMapping("/remove")
     public String remove(BoardDTO boardDTO, RedirectAttributes redirectAttributes) {
 
